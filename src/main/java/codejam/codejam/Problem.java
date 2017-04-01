@@ -3,6 +3,7 @@ package codejam.codejam;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.math.BigInteger;
 import java.util.Scanner;
 
 public class Problem {
@@ -26,14 +27,9 @@ public class Problem {
     }
 
     private Case parseCase() {
+        Integer n = scanner.nextInt();
+        BigInteger k = scanner.nextBigInteger();
 
-
-
-
-        // parse time
-        //String timeStr = scanner.next();
-        //DateTime t = formatter.parseDateTime(timeStr);
-
-        return null;
+        return new Case(n, k);
     }
 }

@@ -1,9 +1,18 @@
 package codejam.codejam;
 
-public class Case {
-    public Solution solve() {
+import java.math.BigInteger;
 
-        return null;
+public class Case {
+    private final Integer n;
+    private final BigInteger k;
+
+    public Case(Integer n, BigInteger k) {
+        this.n = n;
+        this.k = k;
+    }
+
+    public Solution solve() {
+        return new Solution(((k.add(BigInteger.ONE)).mod(BigInteger.valueOf(2).pow(n))).equals(BigInteger.ZERO));
     }
 
     // sorts list
