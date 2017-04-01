@@ -1,9 +1,13 @@
 package codejam.codejam;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.util.Scanner;
 
 public class ProblemA {
     Scanner scanner = new Scanner(System.in);
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
     public void solve() {
         // read inputs
@@ -22,6 +26,14 @@ public class ProblemA {
     }
 
     private Case parseCase() {
+
+
+
+
+        // parse time
+        //String timeStr = scanner.next();
+        //DateTime t = formatter.parseDateTime(timeStr);
+
         return null;
     }
 }
