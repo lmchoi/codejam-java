@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TripCase implements Case {
+public class TripCase implements TrainCase {
     private final List<Trip> trips;
 
     Map<Character, Station> stations;

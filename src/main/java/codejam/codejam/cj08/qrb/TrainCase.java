@@ -1,5 +1,5 @@
 package codejam.codejam.cj08.qrb;
 
-public interface Case {
+public interface TrainCase {
     TrainSolution solve();
 }

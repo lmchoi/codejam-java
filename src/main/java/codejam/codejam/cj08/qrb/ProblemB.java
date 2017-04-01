@@ -13,7 +13,7 @@ public class ProblemB {
     Scanner scanner = new Scanner(System.in);
     DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
-    private Case parseCase() throws ParseException {
+    private TrainCase parseCase() throws ParseException {
         // for each case
         int turnaroundTime = scanner.nextInt();
         int numberOfTripsA = scanner.nextInt();
@@ -53,7 +53,7 @@ public class ProblemB {
         int numOfCases = scanner.nextInt();
 
         for (int i = 1; i <= numOfCases; i++) {
-            Case c = parseCase();
+            TrainCase c = parseCase();
             TrainSolution solve = c.solve();
             System.out.println("Case #" + i + ": " + solve);
         }
