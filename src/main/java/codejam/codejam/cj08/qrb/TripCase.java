@@ -1,8 +1,5 @@
 package codejam.codejam.cj08.qrb;
 
-import codejam.codejam.Case;
-import codejam.codejam.TrainSolution;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

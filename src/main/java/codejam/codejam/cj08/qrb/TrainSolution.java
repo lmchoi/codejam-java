@@ -1,4 +1,4 @@
-package codejam.codejam;
+package codejam.codejam.cj08.qrb;
 
 public class TrainSolution {
     private final int a;

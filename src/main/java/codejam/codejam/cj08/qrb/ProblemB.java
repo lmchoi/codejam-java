@@ -1,7 +1,5 @@
 package codejam.codejam.cj08.qrb;
 
-import codejam.codejam.Case;
-import codejam.codejam.TrainSolution;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
