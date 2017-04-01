@@ -5,7 +5,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Scanner;
 
-public class ProblemA {
+public class Problem {
     Scanner scanner = new Scanner(System.in);
     DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
