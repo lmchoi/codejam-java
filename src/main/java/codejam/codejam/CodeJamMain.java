@@ -3,7 +3,6 @@ package codejam.codejam;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,12 +10,14 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class CodeJamMain {
+    public static boolean DEBUG = true;
     public static void main (String[] args) throws ParseException {
         ProblemD problem = new ProblemD();
         problem.solve();
     }
 
     public static class ProblemD {
+
         Scanner scanner = new Scanner(System.in);
         static int n;
         public void solve() {
@@ -36,100 +37,72 @@ public class CodeJamMain {
                     models.push(new Model(model, r, c));
                 }
 
-                System.out.println("input: n = " + n);
+                //System.out.println("input: n = " + n);
                 Solution solution = solveCase(n, models);
 
                 // output
                 System.out.println("Case #" + i + ": " + solution);
                 solution.printChanges();
             }
-
         }
 
         private Solution solveCase(int n, LinkedList<Model> models) {
             Show show = new Show(n, models);
-            System.out.println(show);
+
             return show.optimise();
         }
 
         public static class Model {
-            private final String type;
-            private final int index;
+            private final char type;
+            private final int r;
+            private final int c;
 
             public Model(String type, int r, int c) {
-                this.type = type;
-                this.index = (r - 1) * n  + (c - 1);
-            }
-
-            public int getIndex() {
-                return index;
-            }
-
-            public String getType() {
-                return type;
+                this.type = type.charAt(0);
+                this.r = r - 1;
+                this.c = c - 1;
             }
         }
 
         public static class Show {
-            private final int n;
-            private final BitSet gridO;
-            private final BitSet gridT;
-            private final BitSet gridX;
-            private final char[][] grid;
-            private final BitSet rowChecker;
-            private final BitSet colChecker;
+            private final static Map<Character, Integer> SCORE_CARD = new HashMap<>();
 
-            private final Map<Character, BitSet> gridOtx = new HashMap<>();
+            private final int n;
+            private final char[][] grid;
 
             // solution
-            private int totalPoints;
+            private final int basePoints;
             private final List<Change> changes;
 
             public Show(int n, LinkedList<Model> models) {
-                this.n = n;
+                SCORE_CARD.put('o', 2);
+                SCORE_CARD.put('+', 1);
+                SCORE_CARD.put('x', 1);
+                SCORE_CARD.put('.', 0);
+
                 changes = new ArrayList<>();
-                this.gridO = new BitSet(n * n);
-                this.gridT = new BitSet(n * n);
-                this.gridX = new BitSet(n * n);
+
+                this.n = n;
+
                 this.grid = new char[n][n];
-                rowChecker = new BitSet(n);
-                colChecker = new BitSet(n);
-                gridOtx.put('o', gridO);
-                gridOtx.put('t', gridT);
-                gridOtx.put('x', gridX);
 
                 for (int i = 0; i < n; i++) {
                     Arrays.fill(grid[i], '.');
-                    colChecker.set(n * i);
                 }
-
-                rowChecker.set(0, n);
 
                 models.forEach(this::addToGrid);
 
-                totalPoints = calculatePoints();
+                basePoints = calculatePoints();
+
+                if (DEBUG) {
+                    if (n < 30) {
+                        System.out.println(this);
+                    }
+                }
             }
 
             public void addToGrid(Model m) {
-                int index = m.getIndex();
-                int r = Math.floorDiv(index, n);
-                int c = index % n;
-                System.out.println("index : " + index + " -> " + r + " " + c + " ");
-
-                char t = m.getType().charAt(0);
-                switch (t) {
-                    case 'o':
-                        gridO.set(index);
-                        break;
-                    case '+':
-                        gridT.set(index);
-                        break;
-                    case 'x':
-                        gridX.set(index);
-                        break;
-                }
-
-                grid[r][c] = t;
+                grid[m.r][m.c] = m.type;
             }
 
             @Override
@@ -147,128 +120,113 @@ public class CodeJamMain {
                 return sb.toString();
             }
 
-            public Solution optimise() {
-                if (n == 1) {
-                    int index = 0;
-                    char c = getCell(index);
-
-                    switch (c) {
-                        case 'o' :
-                            // do nothing
-                            break;
-
-                        case '+':
-                            // check the following:
-                            updateCell(index, 'o');
-                            break;
-
-                        case 'x':
-                            // check the following:
-                            updateCell(index, 'o');
-                            break;
-
-                        case '.':
-                            updateCell(index, 'o');
-                            // check the following:
-                            // no other +/o in the diagonals
-                            // no other x/o in the row/column
-                            break;
-                    }
-                } else {
-                    // consider the top row only
-                    int o = -1;
-                    int t = -1;
-                    int x = -1;
-
-                    for (int i = 0; i < n; i++) {
-                        char type = grid[0][i];
-
-                        switch (type) {
-                            case 'o' :
-                                o = i;
-                                break;
-
-                            case '+':
-                                t = i;
-                                break;
-
-                            case 'x':
-                                x = i;
-                                break;
-
-                        }
-                    }
-
-                    for (int i = 0; i < n; i++) {
-                        char type = grid[0][i];
-
-                        switch (type) {
-                            case 'o' :
-                                o = i;
-                                break;
-
-                            case '+':
-                                t = i;
-                                break;
-
-                            case 'x':
-                                x = i;
-                                break;
-
-                        }
-                    }
-
-                    if (o == -1) {
-                        updateCell(0, 0, 'o');
-                    }
-                }
-
-                return new Solution(totalPoints, changes);
-            }
-
             private void updateCell(int r, int c, char type) {
                 char previousType = grid[r][c];
 
-                if (previousType != '.') {
-                    totalPoints++;
-                } else {
-                    totalPoints += 2;
+                if (previousType == 'o' && type != 'o') {
+                    System.exit(-1);
                 }
 
-                grid[r][c] = type;
-                changes.add(new Change(r, c, type));
-            }
-
-            private void updateCell(int index, char type) {
-                int r = Math.floorDiv(index, n);
-                int c = index % n;
-
-                char previousType = grid[r][c];
-                if (gridOtx.containsKey(previousType)) {
-                    totalPoints++;
-                    gridOtx.get(previousType).clear(index);
-                } else {
-                    totalPoints += 2;
+                if (previousType == 'x') {
+                    if (type != 'x' && type != 'o') {
+                        System.out.println("updating: " + r + " " + c + " replacing " + previousType + " with " + type);
+                        System.exit(-1);
+                    }
                 }
 
-                grid[r][c] = type;
-                gridOtx.get(type).set(index);
-                changes.add(new Change(r, c, type));
-            }
+                if (previousType == '+') {
+                    if (type != '+' && type != 'o') {
+                        System.out.println("updating: " + r + " " + c + " replacing " + previousType + " with " + type);
+                        System.exit(-1);
+                    }
+                }
 
-            private char getCell(int index) {
-                int r = Math.floorDiv(index, n);
-                int c = index % n;
-                return grid[r][c];
+                if (previousType != type) {
+                    grid[r][c] = type;
+                    changes.add(new Change(r, c, type));
+                }
             }
 
             private int calculatePoints() {
-                return (gridO.cardinality() * 2) + gridT.cardinality() + gridX.cardinality();
+                int pts = 0;
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        char type = grid[i][j];
+                        pts += SCORE_CARD.get(type);
+                    }
+                }
+                return pts;
+            }
+
+            public Solution optimise() {
+                // TODO implement for large test!!
+                int crowdedRow = 0;
+
+                // find x
+                int xo = 0;
+                for (int i = 1; i < n; i++) {
+                    if (grid[crowdedRow][i] == 'x' || grid[crowdedRow][i] == 'o') {
+                        xo = i;
+                    } else {
+                        if (!(xo == 1 && i == (n - 1))) {
+                            updateCell(crowdedRow, i, '+');
+                        }
+                    }
+                }
+
+                if (xo != 0) {
+                    updateCell(crowdedRow, xo, 'o');
+                    updateCell(crowdedRow, 0, '+');
+                } else {
+                    updateCell(crowdedRow, 0, 'o');
+                }
+
+                for (int i = 1; i < (n - 1); i++) {
+                    int xc = (i + xo) % n;
+                    updateCell(i, xc, 'x');
+                }
+
+                // bottom row
+                if (n > 1) {
+                    int br = n - 1;
+
+                    // TODO if xo is at 0, 0
+                    if (xo == 0) {
+                        for (int i = 1; i < (n - 1); i++) {
+                            updateCell(br, i, '+');
+                        }
+
+                        updateCell(br, br, 'x');
+                    } else {
+                        int xc = (br + xo) % n;
+
+                        for (int i = 1; i < (n - 1); i++) {
+                            if (i == xc) {
+                                updateCell(br, xc, 'o');
+                            } else {
+                                updateCell(br, i, '+');
+                            }
+                        }
+
+                        if (xo == 1) {
+                            updateCell(br, 0, 'o');
+                        }
+                    }
+                }
+
+                if (DEBUG) {
+                    if (n < 30) {
+                        System.out.println(this);
+                    }
+                }
+
+                return new Solution(calculatePoints(), changes);
             }
         }
     }
 
     public static class Change {
+        // 0 ... (n - 1)
         private final int r;
         private final int c;
         private final char type;
@@ -277,6 +235,11 @@ public class CodeJamMain {
             this.r = r;
             this.c = c;
             this.type = type;
+        }
+
+        @Override
+        public String toString() {
+            return type + " " + (r + 1) + " " + (c + 1);
         }
     }
 
@@ -289,9 +252,21 @@ public class CodeJamMain {
             this.changes = changes;
         }
 
+        public int getPoints() {
+            return points;
+        }
+
+        public List<Change> getChanges() {
+            return changes;
+        }
+
         public void printChanges() {
-            for (Change c : changes) {
-                System.out.println(c.type + " " + c.r + " " + c.c);
+            if (DEBUG) {
+                if (changes.size() < 20) {
+                    changes.forEach(System.out::println);
+                }
+            } else {
+                changes.forEach(System.out::println);
             }
         }
 
