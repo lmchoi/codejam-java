@@ -1,7 +1,7 @@
 package codejam.codejam;
 
+import java.math.BigInteger;
 import java.text.ParseException;
-import java.util.BitSet;
 import java.util.Scanner;
 
 public class CodeJamMain {
@@ -11,6 +11,8 @@ public class CodeJamMain {
     }
 
     public static class ProblemA {
+        BigInteger TWO = new BigInteger("2");
+
         Scanner scanner = new Scanner(System.in);
 
         public void solve() {
@@ -19,48 +21,61 @@ public class CodeJamMain {
             scanner.nextLine(); // skip to next line
             for (int i = 1; i <= numOfCases; i++) {
 
-                // --- Parsing
-                // read space separated lines
-                String pancakes = scanner.next();
-                int k = scanner.nextInt(); // 2 <= k <= s length
+                BigInteger n = scanner.nextBigInteger();
+                BigInteger k = scanner.nextBigInteger();
 
-                // find solution
-                int solution = solveCase(pancakes, k);
+                BigInteger[] solution = solveCase(n, k);
 
-                String output = "IMPOSSIBLE";
-                if (solution != -1) {
-                    output = String.valueOf(solution);
-                }
-
+                //System.out.println("Input n = " + n + ", k = " + k);
                 // output
-                System.out.println("Case #" + i + ": " + output);
+                System.out.println("Case #" + i + ": " + solution[0] + " " + solution[1]);
             }
+
         }
 
-        private int solveCase(String pc, int k) {
-            BitSet pancakes = new BitSet(pc.length());
+        private BigInteger[] solveCase(BigInteger n, BigInteger k) {
+            // find which layer
+            int i = k.bitLength();
+            //System.out.println("Level: " + i);
+            BigInteger a = k.clearBit(i - 1);
+            //System.out.println("Across: " + a);
 
-            char[] c = pc.toCharArray();
-            for (int i = 0; i < c.length; i++) {
-                if (c[i] == '+') {
-                    pancakes.set(i);
+            BigInteger[] ret = new BigInteger[2];
+            BigInteger x = n;
+            while (i != 0) {
+                ret = nextLevel(x);
+
+                if (a.equals(BigInteger.ZERO)) {
+                    x = ret[0];
+                } else {
+                    x = ret[1];
                 }
+                i--;
             }
 
-            int flips = 0;
+            return ret;
+        }
 
-            int i = pancakes.nextClearBit(0);
-            while (i < c.length) {
-                pancakes.flip(i, (i + k));
-                flips++;
-                i = pancakes.nextClearBit(i + 1);
+        private BigInteger[] nextLevel(BigInteger n) {
+            BigInteger[] ret = new BigInteger[2];
+
+            if (n.equals(BigInteger.ZERO)) {
+                ret[0] = BigInteger.ZERO;
+                ret[1] = BigInteger.ZERO;
+                return ret;
             }
 
-            if (pancakes.cardinality() == c.length) {
-                return flips;
+            BigInteger[] d2 = n.divideAndRemainder(TWO);
+
+            ret[0] = d2[0];
+
+            if (d2[1].equals(BigInteger.ZERO)) {
+                ret[1] = d2[0].subtract(BigInteger.ONE);
+            } else {
+                ret[1] = d2[0];
             }
 
-            return -1;
+            return ret;
         }
     }
 }
