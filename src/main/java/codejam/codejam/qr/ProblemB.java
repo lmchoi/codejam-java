@@ -4,6 +4,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class ProblemB {
@@ -22,7 +23,6 @@ public class ProblemB {
             BigInteger r = solveCase(n);
 
             // output
-            System.out.println(n);
             System.out.println("Case #" + i + ": " + r);
         }
 
@@ -59,7 +59,10 @@ public class ProblemB {
         BigInteger b1 = new BigInteger(s1);
         BigInteger newB1 = solveCase(b1.subtract(BigInteger.ONE));
 
-        BigInteger b2 = new BigInteger("9");
-        return new BigInteger(newB1.toString().concat(b2.toString()));
+        String nine = "9";
+        int i = s.length() - notTidy;
+        String s2 = String.join("", Collections.nCopies(i, nine));
+
+        return new BigInteger(newB1.toString().concat(s2));
     }
 }

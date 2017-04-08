@@ -1,22 +1,17 @@
 package codejam.codejam;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import java.math.BigInteger;
 import java.text.ParseException;
-import java.util.Collections;
+import java.util.BitSet;
 import java.util.Scanner;
 
 public class CodeJamMain {
     public static void main (String[] args) throws ParseException {
-        ProblemB problem = new ProblemB();
+        ProblemA problem = new ProblemA();
         problem.solve();
     }
 
-    public static class ProblemB {
+    public static class ProblemA {
         Scanner scanner = new Scanner(System.in);
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
         public void solve() {
             // read inputs
@@ -25,52 +20,47 @@ public class CodeJamMain {
             for (int i = 1; i <= numOfCases; i++) {
 
                 // --- Parsing
-                BigInteger n = scanner.nextBigInteger();
+                // read space separated lines
+                String pancakes = scanner.next();
+                int k = scanner.nextInt(); // 2 <= k <= s length
 
-                BigInteger r = solveCase(n);
+                // find solution
+                int solution = solveCase(pancakes, k);
+
+                String output = "IMPOSSIBLE";
+                if (solution != -1) {
+                    output = String.valueOf(solution);
+                }
 
                 // output
-                System.out.println("Case #" + i + ": " + r);
+                System.out.println("Case #" + i + ": " + output);
             }
-
         }
 
-        private BigInteger solveCase(BigInteger n) {
-            String s = n.toString();
+        private int solveCase(String pc, int k) {
+            BitSet pancakes = new BitSet(pc.length());
 
-            if (s.length() == 1) {
-                return n;
-            }
-
-            int notTidy = -1;
-            char b = s.charAt(0);
-            for (int i = 1; i < s.length(); i++) {
-                char c = s.charAt(i);
-                if (c > b) {
-                    b = c;
-                } else if (c < b) {
-                    notTidy = i;
+            char[] c = pc.toCharArray();
+            for (int i = 0; i < c.length; i++) {
+                if (c[i] == '+') {
+                    pancakes.set(i);
                 }
             }
 
-            if (notTidy != -1) {
-                return tidy(s, notTidy);
-            } else {
-                return n;
+            int flips = 0;
+
+            int i = pancakes.nextClearBit(0);
+            while (i < c.length) {
+                pancakes.flip(i, (i + k));
+                flips++;
+                i = pancakes.nextClearBit(i + 1);
             }
-        }
 
-        private BigInteger tidy(String s, int notTidy) {
-            String s1 = s.substring(0, notTidy);
+            if (pancakes.cardinality() == c.length) {
+                return flips;
+            }
 
-            BigInteger b1 = new BigInteger(s1);
-            BigInteger newB1 = solveCase(b1.subtract(BigInteger.ONE));
-
-            String nine = "9";
-            int i = s.length() - notTidy;
-            String s2 = String.join("", Collections.nCopies(i, nine));
-
-            return new BigInteger(newB1.toString().concat(s2));
+            return -1;
         }
     }
 }
