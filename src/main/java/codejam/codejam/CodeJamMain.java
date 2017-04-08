@@ -37,12 +37,26 @@ public class CodeJamMain {
                     models.push(new Model(model, r, c));
                 }
 
-                //System.out.println("input: n = " + n);
+                if (DEBUG) {
+                    System.out.println("input: n = " + n + " " + models.size());
+                }
                 Solution solution = solveCase(n, models);
+
+                if (DEBUG) {
+                    if (n > 1) {
+                        int x = 3 * (n - 2) + 4;
+                        if (solution.getPoints() != x) {
+                            System.out.println("Case #" + i + ": " + solution);
+                            System.exit(-1);
+                        }
+                    }
+                }
 
                 // output
                 System.out.println("Case #" + i + ": " + solution);
-                solution.printChanges();
+                //if (!DEBUG) {
+                    solution.printChanges();
+                //}
             }
         }
 
@@ -95,9 +109,9 @@ public class CodeJamMain {
                 basePoints = calculatePoints();
 
                 if (DEBUG) {
-                    if (n < 30) {
+                    //if (models.size() > 50) {
                         System.out.println(this);
-                    }
+                    //}
                 }
             }
 
@@ -123,27 +137,17 @@ public class CodeJamMain {
             private void updateCell(int r, int c, char type) {
                 char previousType = grid[r][c];
 
-                if (previousType == 'o' && type != 'o') {
-                    System.exit(-1);
-                }
-
-                if (previousType == 'x') {
-                    if (type != 'x' && type != 'o') {
+                // add or upgrade
+                if (previousType == '.' || type == 'o') {
+                    if (previousType != type) {
+                        grid[r][c] = type;
+                        changes.add(new Change(r, c, type));
+                    }
+                } else {
+                    if (previousType != type) {
                         System.out.println("updating: " + r + " " + c + " replacing " + previousType + " with " + type);
                         System.exit(-1);
                     }
-                }
-
-                if (previousType == '+') {
-                    if (type != '+' && type != 'o') {
-                        System.out.println("updating: " + r + " " + c + " replacing " + previousType + " with " + type);
-                        System.exit(-1);
-                    }
-                }
-
-                if (previousType != type) {
-                    grid[r][c] = type;
-                    changes.add(new Change(r, c, type));
                 }
             }
 
@@ -168,9 +172,7 @@ public class CodeJamMain {
                     if (grid[crowdedRow][i] == 'x' || grid[crowdedRow][i] == 'o') {
                         xo = i;
                     } else {
-                        if (!(xo == 1 && i == (n - 1))) {
-                            updateCell(crowdedRow, i, '+');
-                        }
+                        updateCell(crowdedRow, i, '+');
                     }
                 }
 
@@ -198,26 +200,31 @@ public class CodeJamMain {
 
                         updateCell(br, br, 'x');
                     } else {
-                        int xc = (br + xo) % n;
-
-                        for (int i = 1; i < (n - 1); i++) {
-                            if (i == xc) {
-                                updateCell(br, xc, 'o');
-                            } else {
-                                updateCell(br, i, '+');
+                        if (n == 2) {
+                            updateCell(br, 0, 'x');
+                        } else {
+                            int xc = (br + xo) % n;
+                            boolean addedO = false;
+                            for (int i = 1; i < (n - 1); i++) {
+                                if (i == xc) {
+                                    addedO = true;
+                                    updateCell(br, xc, 'o');
+                                } else {
+                                    updateCell(br, i, '+');
+                                }
                             }
-                        }
 
-                        if (xo == 1) {
-                            updateCell(br, 0, 'o');
+                            if (!addedO) {
+                                updateCell(br, 0, 'x');
+                            }
                         }
                     }
                 }
 
                 if (DEBUG) {
-                    if (n < 30) {
+                    //if (n < 10) {
                         System.out.println(this);
-                    }
+                    //}
                 }
 
                 return new Solution(calculatePoints(), changes);
