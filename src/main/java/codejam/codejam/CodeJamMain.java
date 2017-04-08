@@ -4,8 +4,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class CodeJamMain {
@@ -77,6 +79,8 @@ public class CodeJamMain {
             private final BitSet rowChecker;
             private final BitSet colChecker;
 
+            private final Map<Character, BitSet> gridOtx = new HashMap<>();
+
             // solution
             private int totalPoints;
             private final List<Change> changes;
@@ -90,13 +94,16 @@ public class CodeJamMain {
                 this.grid = new char[n][n];
                 rowChecker = new BitSet(n);
                 colChecker = new BitSet(n);
+                gridOtx.put('o', gridO);
+                gridOtx.put('t', gridT);
+                gridOtx.put('x', gridX);
 
                 for (int i = 0; i < n; i++) {
                     Arrays.fill(grid[i], '.');
                     colChecker.set(n * i);
                 }
 
-                rowChecker.set(0, rowChecker.length());
+                rowChecker.set(0, n);
 
                 models.forEach(this::addToGrid);
 
@@ -152,35 +159,100 @@ public class CodeJamMain {
 
                         case '+':
                             // check the following:
-                            totalPoints++;
                             updateCell(index, 'o');
                             break;
 
                         case 'x':
                             // check the following:
-                            totalPoints++;
                             updateCell(index, 'o');
                             break;
 
                         case '.':
-                            totalPoints += 2;
                             updateCell(index, 'o');
                             // check the following:
                             // no other +/o in the diagonals
                             // no other x/o in the row/column
                             break;
                     }
+                } else {
+                    // consider the top row only
+                    int o = -1;
+                    int t = -1;
+                    int x = -1;
+
+                    for (int i = 0; i < n; i++) {
+                        char type = grid[0][i];
+
+                        switch (type) {
+                            case 'o' :
+                                o = i;
+                                break;
+
+                            case '+':
+                                t = i;
+                                break;
+
+                            case 'x':
+                                x = i;
+                                break;
+
+                        }
+                    }
+
+                    for (int i = 0; i < n; i++) {
+                        char type = grid[0][i];
+
+                        switch (type) {
+                            case 'o' :
+                                o = i;
+                                break;
+
+                            case '+':
+                                t = i;
+                                break;
+
+                            case 'x':
+                                x = i;
+                                break;
+
+                        }
+                    }
+
+                    if (o == -1) {
+                        updateCell(0, 0, 'o');
+                    }
                 }
 
-                // TODO for n > 1
-
                 return new Solution(totalPoints, changes);
+            }
+
+            private void updateCell(int r, int c, char type) {
+                char previousType = grid[r][c];
+
+                if (previousType != '.') {
+                    totalPoints++;
+                } else {
+                    totalPoints += 2;
+                }
+
+                grid[r][c] = type;
+                changes.add(new Change(r, c, type));
             }
 
             private void updateCell(int index, char type) {
                 int r = Math.floorDiv(index, n);
                 int c = index % n;
+
+                char previousType = grid[r][c];
+                if (gridOtx.containsKey(previousType)) {
+                    totalPoints++;
+                    gridOtx.get(previousType).clear(index);
+                } else {
+                    totalPoints += 2;
+                }
+
                 grid[r][c] = type;
+                gridOtx.get(type).set(index);
                 changes.add(new Change(r, c, type));
             }
 
@@ -197,13 +269,11 @@ public class CodeJamMain {
     }
 
     public static class Change {
-
         private final int r;
         private final int c;
         private final char type;
 
         public Change(int r, int c, char type) {
-
             this.r = r;
             this.c = c;
             this.type = type;
@@ -217,10 +287,6 @@ public class CodeJamMain {
         public Solution(int totalPoints, List<Change> changes) {
             points = totalPoints;
             this.changes = changes;
-        }
-
-        public int getPoints() {
-            return points;
         }
 
         public void printChanges() {
