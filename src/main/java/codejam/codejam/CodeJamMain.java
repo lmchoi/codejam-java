@@ -1,171 +1,238 @@
 package codejam.codejam;
 
-import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.TreeMap;
 
 public class CodeJamMain {
     public static void main (String[] args) throws ParseException {
-        ProblemA problem = new ProblemA();
+        ProblemD problem = new ProblemD();
         problem.solve();
     }
 
-    public static class ProblemA {
-        BigInteger TWO = new BigInteger("2");
-
+    public static class ProblemD {
         Scanner scanner = new Scanner(System.in);
-
+        static int n;
         public void solve() {
             // read inputs
             int numOfCases = scanner.nextInt();
             scanner.nextLine(); // skip to next line
             for (int i = 1; i <= numOfCases; i++) {
+                n = scanner.nextInt();
+                int m = scanner.nextInt();
+                scanner.nextLine(); // skip to next
+                LinkedList<Model> models = new LinkedList<>();
+                for (int j = 0; j < m; j++) {
+                    String model = scanner.next();
+                    int r = scanner.nextInt();
+                    int c = scanner.nextInt();
 
-                BigInteger n = scanner.nextBigInteger();
-                BigInteger k = scanner.nextBigInteger();
+                    models.push(new Model(model, r, c));
+                }
 
-                BigInteger[] solution = solveCase(n, k);
+                System.out.println("input: n = " + n);
+                Solution solution = solveCase(n, models);
 
-                //System.out.println("Input n = " + n + ", k = " + k);
                 // output
-                System.out.println("Case #" + i + ": " + solution[0] + " " + solution[1]);
+                System.out.println("Case #" + i + ": " + solution);
+                solution.printChanges();
             }
 
         }
 
-        private BigInteger[] solveCase(BigInteger n, BigInteger k) {
-            // find which layer
-            int requiredLevel = k.bitLength();
-            //System.out.println("Level: " + i);
-            //BigInteger a = k.clearBit(requiredLevel - 1);
-            //System.out.println("Across: " + a);
-
-            BigInteger[] ret = new BigInteger[2];
-            int i = 0;
-
-            // top level
-            TreeMap<TPair, BigInteger> allValues = new TreeMap<>();
-            TPair biPair = nextLevel(n);
-            allValues.put(biPair, BigInteger.ONE);
-
-            TreeMap<TPair, BigInteger> nextValues = allValues;
-            while (i < requiredLevel) {
-                nextValues = getValuesForNextLevel(nextValues);
-                allValues.putAll(nextValues);
-                i++;
-            }
-
-            BigInteger x = k;
-            for(Map.Entry<TPair,BigInteger> entry : allValues.descendingMap().entrySet()) {
-                x = x.subtract(entry.getValue());
-                if (x.compareTo(BigInteger.ZERO) > 0) {
-                    continue;
-                }
-                return entry.getKey().lr;
-            }
-
-            return ret;
+        private Solution solveCase(int n, LinkedList<Model> models) {
+            Show show = new Show(n, models);
+            System.out.println(show);
+            return show.optimise();
         }
 
-        private TreeMap<TPair, BigInteger> getValuesForNextLevel(TreeMap<TPair, BigInteger> valuesAtLevel) {
-            TreeMap<TPair, BigInteger> nextValues = new TreeMap<>();
+        public static class Model {
+            private final String type;
+            private final int index;
 
-            for(Map.Entry<TPair,BigInteger> entry : valuesAtLevel.entrySet()) {
-                TPair lr = entry.getKey();
-                BigInteger count = entry.getValue();
-
-                //System.out.println(lr + " count: " + count);
-
-                TPair lChild = nextLevel(lr.getL());
-                if (nextValues.containsKey(lChild)) {
-                    nextValues.put(lChild, count.add(nextValues.get(lChild)));
-                } else {
-                    nextValues.put(lChild, count);
-                }
-
-                TPair rChild = nextLevel(lr.getR());
-                if (nextValues.containsKey(rChild)) {
-                    nextValues.put(rChild, count.add(nextValues.get(rChild)));
-                } else {
-                    nextValues.put(rChild, count);
-                }
+            public Model(String type, int r, int c) {
+                this.type = type;
+                this.index = (r - 1) * n  + (c - 1);
             }
 
-            return nextValues;
+            public int getIndex() {
+                return index;
+            }
+
+            public String getType() {
+                return type;
+            }
         }
 
-        private TPair nextLevel(BigInteger n) {
-            BigInteger[] ret = new BigInteger[2];
+        public static class Show {
+            private final int n;
+            private final BitSet gridO;
+            private final BitSet gridT;
+            private final BitSet gridX;
+            private final char[][] grid;
+            private final BitSet rowChecker;
+            private final BitSet colChecker;
 
-            if (BigInteger.ONE.compareTo(n) >= 0) {
-                ret[0] = BigInteger.ZERO;
-                ret[1] = BigInteger.ZERO;
-                return new TPair(ret);
+            // solution
+            private int totalPoints;
+            private final List<Change> changes;
+
+            public Show(int n, LinkedList<Model> models) {
+                this.n = n;
+                changes = new ArrayList<>();
+                this.gridO = new BitSet(n * n);
+                this.gridT = new BitSet(n * n);
+                this.gridX = new BitSet(n * n);
+                this.grid = new char[n][n];
+                rowChecker = new BitSet(n);
+                colChecker = new BitSet(n);
+
+                for (int i = 0; i < n; i++) {
+                    Arrays.fill(grid[i], '.');
+                    colChecker.set(n * i);
+                }
+
+                rowChecker.set(0, rowChecker.length());
+
+                models.forEach(this::addToGrid);
+
+                totalPoints = calculatePoints();
             }
 
-            BigInteger[] d2 = n.divideAndRemainder(TWO);
+            public void addToGrid(Model m) {
+                int index = m.getIndex();
+                int r = Math.floorDiv(index, n);
+                int c = index % n;
+                System.out.println("index : " + index + " -> " + r + " " + c + " ");
 
-            ret[0] = d2[0];
+                char t = m.getType().charAt(0);
+                switch (t) {
+                    case 'o':
+                        gridO.set(index);
+                        break;
+                    case '+':
+                        gridT.set(index);
+                        break;
+                    case 'x':
+                        gridX.set(index);
+                        break;
+                }
 
-            if (d2[1].equals(BigInteger.ZERO)) {
-                ret[1] = d2[0].subtract(BigInteger.ONE);
-            } else {
-                ret[1] = d2[0];
+                grid[r][c] = t;
             }
 
-            return new TPair(ret);
+            @Override
+            public String toString() {
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        sb.append(grid[i][j]);
+                    }
+
+                    sb.append("\n");
+                }
+
+                return sb.toString();
+            }
+
+            public Solution optimise() {
+                if (n == 1) {
+                    int index = 0;
+                    char c = getCell(index);
+
+                    switch (c) {
+                        case 'o' :
+                            // do nothing
+                            break;
+
+                        case '+':
+                            // check the following:
+                            totalPoints++;
+                            updateCell(index, 'o');
+                            break;
+
+                        case 'x':
+                            // check the following:
+                            totalPoints++;
+                            updateCell(index, 'o');
+                            break;
+
+                        case '.':
+                            totalPoints += 2;
+                            updateCell(index, 'o');
+                            // check the following:
+                            // no other +/o in the diagonals
+                            // no other x/o in the row/column
+                            break;
+                    }
+                }
+
+                // TODO for n > 1
+
+                return new Solution(totalPoints, changes);
+            }
+
+            private void updateCell(int index, char type) {
+                int r = Math.floorDiv(index, n);
+                int c = index % n;
+                grid[r][c] = type;
+                changes.add(new Change(r, c, type));
+            }
+
+            private char getCell(int index) {
+                int r = Math.floorDiv(index, n);
+                int c = index % n;
+                return grid[r][c];
+            }
+
+            private int calculatePoints() {
+                return (gridO.cardinality() * 2) + gridT.cardinality() + gridX.cardinality();
+            }
         }
     }
 
-    private static class TPair implements Comparable<TPair> {
-        private final BigInteger[] lr;
+    public static class Change {
 
-        public TPair(BigInteger[] lr) {
-            this.lr = lr;
+        private final int r;
+        private final int c;
+        private final char type;
+
+        public Change(int r, int c, char type) {
+
+            this.r = r;
+            this.c = c;
+            this.type = type;
+        }
+    }
+
+    public static class Solution {
+        private int points;
+        private final List<Change> changes;
+
+        public Solution(int totalPoints, List<Change> changes) {
+            points = totalPoints;
+            this.changes = changes;
         }
 
-        public BigInteger getL() {
-            return lr[0];
+        public int getPoints() {
+            return points;
         }
 
-        public BigInteger getR() {
-            return lr[1];
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof TPair)) return false;
-
-            TPair tPair = (TPair) o;
-
-            if (!Arrays.equals(lr, tPair.lr)) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return lr != null ? Arrays.hashCode(lr) : 0;
-        }
-
-        @Override
-        public int compareTo(TPair o) {
-            int ct = getL().compareTo(o.getL());
-            if (ct == 0) {
-                ct = getR().compareTo(o.getR());
+        public void printChanges() {
+            for (Change c : changes) {
+                System.out.println(c.type + " " + c.r + " " + c.c);
             }
-            return ct;
         }
 
+        // two ints, strings etc, careful with chars!
         @Override
         public String toString() {
-            return "TPair{" +
-                    "lr=" + Arrays.toString(lr) +
-                    '}';
+            return points + " " + changes.size();
         }
     }
 }
