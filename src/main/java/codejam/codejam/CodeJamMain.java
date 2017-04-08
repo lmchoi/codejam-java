@@ -2,7 +2,10 @@ package codejam.codejam;
 
 import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 public class CodeJamMain {
     public static void main (String[] args) throws ParseException {
@@ -35,34 +38,72 @@ public class CodeJamMain {
 
         private BigInteger[] solveCase(BigInteger n, BigInteger k) {
             // find which layer
-            int i = k.bitLength();
+            int requiredLevel = k.bitLength();
             //System.out.println("Level: " + i);
-            BigInteger a = k.clearBit(i - 1);
+            //BigInteger a = k.clearBit(requiredLevel - 1);
             //System.out.println("Across: " + a);
 
             BigInteger[] ret = new BigInteger[2];
-            BigInteger x = n;
-            while (i != 0) {
-                ret = nextLevel(x);
+            int i = 0;
 
-                if (a.equals(BigInteger.ZERO)) {
-                    x = ret[0];
-                } else {
-                    x = ret[1];
+            // top level
+            TreeMap<TPair, BigInteger> allValues = new TreeMap<>();
+            TPair biPair = nextLevel(n);
+            allValues.put(biPair, BigInteger.ONE);
+
+            TreeMap<TPair, BigInteger> nextValues = allValues;
+            while (i < requiredLevel) {
+                nextValues = getValuesForNextLevel(nextValues);
+                allValues.putAll(nextValues);
+                i++;
+            }
+
+            BigInteger x = k;
+            for(Map.Entry<TPair,BigInteger> entry : allValues.descendingMap().entrySet()) {
+                x = x.subtract(entry.getValue());
+                if (x.compareTo(BigInteger.ZERO) > 0) {
+                    continue;
                 }
-                i--;
+                return entry.getKey().lr;
             }
 
             return ret;
         }
 
-        private BigInteger[] nextLevel(BigInteger n) {
+        private TreeMap<TPair, BigInteger> getValuesForNextLevel(TreeMap<TPair, BigInteger> valuesAtLevel) {
+            TreeMap<TPair, BigInteger> nextValues = new TreeMap<>();
+
+            for(Map.Entry<TPair,BigInteger> entry : valuesAtLevel.entrySet()) {
+                TPair lr = entry.getKey();
+                BigInteger count = entry.getValue();
+
+                //System.out.println(lr + " count: " + count);
+
+                TPair lChild = nextLevel(lr.getL());
+                if (nextValues.containsKey(lChild)) {
+                    nextValues.put(lChild, count.add(nextValues.get(lChild)));
+                } else {
+                    nextValues.put(lChild, count);
+                }
+
+                TPair rChild = nextLevel(lr.getR());
+                if (nextValues.containsKey(rChild)) {
+                    nextValues.put(rChild, count.add(nextValues.get(rChild)));
+                } else {
+                    nextValues.put(rChild, count);
+                }
+            }
+
+            return nextValues;
+        }
+
+        private TPair nextLevel(BigInteger n) {
             BigInteger[] ret = new BigInteger[2];
 
-            if (n.equals(BigInteger.ZERO)) {
+            if (BigInteger.ONE.compareTo(n) >= 0) {
                 ret[0] = BigInteger.ZERO;
                 ret[1] = BigInteger.ZERO;
-                return ret;
+                return new TPair(ret);
             }
 
             BigInteger[] d2 = n.divideAndRemainder(TWO);
@@ -75,7 +116,56 @@ public class CodeJamMain {
                 ret[1] = d2[0];
             }
 
-            return ret;
+            return new TPair(ret);
+        }
+    }
+
+    private static class TPair implements Comparable<TPair> {
+        private final BigInteger[] lr;
+
+        public TPair(BigInteger[] lr) {
+            this.lr = lr;
+        }
+
+        public BigInteger getL() {
+            return lr[0];
+        }
+
+        public BigInteger getR() {
+            return lr[1];
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TPair)) return false;
+
+            TPair tPair = (TPair) o;
+
+            if (!Arrays.equals(lr, tPair.lr)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return lr != null ? Arrays.hashCode(lr) : 0;
+        }
+
+        @Override
+        public int compareTo(TPair o) {
+            int ct = getL().compareTo(o.getL());
+            if (ct == 0) {
+                ct = getR().compareTo(o.getR());
+            }
+            return ct;
+        }
+
+        @Override
+        public String toString() {
+            return "TPair{" +
+                    "lr=" + Arrays.toString(lr) +
+                    '}';
         }
     }
 }
