@@ -7,7 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.text.ParseException;
 import java.util.Scanner;
 
-public class CodeJamMain {
+public class CodeJamMainTemplate {
     public static boolean DEBUG = true;
     public static void main (String[] args) throws ParseException {
         Problem problem = new Problem();
