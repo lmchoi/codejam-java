@@ -12,11 +12,11 @@ import java.util.Scanner;
 public class CodeJamMain {
     public static boolean DEBUG = true;
     public static void main (String[] args) throws ParseException {
-        ProblemD problem = new ProblemD();
+        Problem problem = new Problem();
         problem.solve();
     }
 
-    public static class ProblemD {
+    public static class Problem {
 
         Scanner scanner = new Scanner(System.in);
         static int n;
