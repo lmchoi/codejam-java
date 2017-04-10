@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 sourceCompatibility = 1.8
 version = '1.0'
-mainClassName = "codejam.codejam.CodeJamMain"
+mainClassName = "codejam.CodeJamMain"
 task wrapper(type: Wrapper) {
   gradleVersion = '1.9'
   distributionUrl = 'http://services.gradle.org/distributions/gradle-1.9-all.zip'

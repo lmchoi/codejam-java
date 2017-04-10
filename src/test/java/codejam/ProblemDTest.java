@@ -1,6 +1,5 @@
 package codejam;
 
-import codejam.codejam.CodeJamMain;
 import org.junit.Test;
 
 import java.util.LinkedList;
