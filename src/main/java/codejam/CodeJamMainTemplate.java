@@ -15,36 +15,65 @@ public class CodeJamMainTemplate {
     }
 
     public static class Problem {
-        Scanner scanner = new Scanner(System.in);
+        Scanner in = new Scanner(System.in);
         DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
         public void solve() {
             // read inputs
-            int numOfCases = scanner.nextInt();
-            scanner.nextLine(); // skip to next line
-            for (int i = 1; i <= numOfCases; i++) {
-
-                // --- Parsing
-                // read space separated lines
-                String line = scanner.nextLine();
-                String[] bases = line.split("\\s+");
-
-                // read date
-                String timeString = scanner.next();
-                DateTime dt = formatter.parseDateTime(timeString);
-
-                // convert 123 to [1, 2, 3]
-                // String.valueOf(a).chars().map(c -> c -= '0').toArray();
+            int numOfCases = in.nextInt();
+            in.nextLine(); // skip to next line
+            for (int cn = 1; cn <= numOfCases; cn++) {
 
                 // find solution
                 Solution solution = null;
 
                 // output
-                System.out.println("Case #" + i + ": " + solution);
+                System.out.println("Case #" + cn + ": " + solution);
             }
 
         }
 
+        //convert 123 to [1, 2, 3]
+        private int[] toIntArray(String numStr) {
+            return String.valueOf(numStr).chars().map(c -> c -= '0').toArray();
+        }
+
+        // read space separated lines
+        private String[] readStringArray() {
+            String line = in.nextLine();
+            return line.split("\\s+");
+        }
+
+        private DateTime readDate() {
+            String timeString = in.next();
+            return formatter.parseDateTime(timeString);
+        }
+
+        private char[][] rotateMatrix90(char[][] board) {
+            int n = board.length;
+            char[][] boardR = new char[n][n];
+            for (int y = 0; y < n; y++) {
+                for (int x = 0; x < n; x++) {
+                    boardR[n - y - 1][x] = board[n - x - 1][n - y - 1];
+                }
+            }
+
+            return boardR;
+        }
+
+        public void printMatrix(char[][] board) {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board.length; j++) {
+                    sb.append(board[i][j]);
+                }
+
+                sb.append("\n");
+            }
+
+            System.out.println(sb.toString());
+        }
     }
 
     public static class Solution {
@@ -64,7 +93,6 @@ public class CodeJamMainTemplate {
         //public String toString() {
         //    return a + " " + b;
         //}
-
 
         // char array
         //@Override
