@@ -15,6 +15,7 @@ public class ProblemB {
     Scanner scanner = new Scanner(System.in);
     DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
 
+
     public void solve() {
         // read inputs
         int numOfCases = scanner.nextInt();
