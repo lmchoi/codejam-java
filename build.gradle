@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 sourceCompatibility = 1.8
 version = '1.0'
-mainClassName = "codejam.CodeJamMainB"
+mainClassName = "codejam.CodeJamMain"
 //mainClassName = "codejam.CodeJamMainA"
 task wrapper(type: Wrapper) {
   gradleVersion = '1.9'
