@@ -65,7 +65,7 @@ public class CodeJamMainTemplate {
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board.length; j++) {
+                for (int j = 0; j < board[i].length; j++) {
                     sb.append(board[i][j]);
                 }
 
