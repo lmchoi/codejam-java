@@ -19,9 +19,9 @@ public class CodeJamMainTemplateBasic {
             in.nextLine(); // skip to next line
             for (int cn = 1; cn <= numOfCases; cn++) {
 
-                String solution = null;
                 // output
-                System.out.println("Case #" + cn + ": " + solution);
+                int ret = 0;
+                System.out.println("Case #" + cn + ": " + ret);
             }
 
         }
